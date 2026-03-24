@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Hierarchy — CUDA Programming</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-card: #0d1117;
+            --bg-code: #161b22;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent: #76B900;
+            --accent-dim: #76B90044;
+            --accent-glow: #76B90033;
+            --border: #21262d;
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            --font-body: 'Inter', sans-serif;
+            --max-width: 900px;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 17px;
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        /* ── Header ── */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .hero > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .series-label {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--accent);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.2;
+            margin-bottom: 1rem;
+        }
+
+        .hero h1 .accent {
+            color: var(--accent);
+        }
+
+        .hero .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin-bottom: 2rem;
+        }
+
+        /* ── Tag Pills ── */
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .tag {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            background: var(--accent-dim);
+            white-space: nowrap;
+        }
+
+        /* ── Pipeline Flow Bar ── */
+        .pipeline {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+            margin-bottom: 1rem;
+            max-width: var(--max-width);
+        }
+
+        .pipeline-step {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            padding: 0.3rem 0.7rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .pipeline-arrow {
+            color: var(--accent);
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        /* ── Slides ── */
+        .slide {
+            min-height: 100vh;
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 4rem 1.5rem;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .slide-number {
+            font-family: var(--font-display);
+            font-size: 5rem;
+            font-weight: 700;
+            color: var(--accent-dim);
+            position: absolute;
+            top: 2rem;
+            right: 1.5rem;
+            line-height: 1;
+            user-select: none;
+        }
+
+        .slide h2 {
+            font-family: var(--font-display);
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            line-height: 1.25;
+        }
+
+        .slide h3 {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .slide p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .slide p strong {
+            color: var(--text-primary);
+        }
+
+        .slide ul, .slide ol {
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        .slide li {
+            margin-bottom: 0.4rem;
+        }
+
+        .slide li strong {
+            color: var(--text-primary);
+        }
+
+        /* ── Code Blocks ── */
+        .code-block {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin: 1.25rem 0;
+            overflow: hidden;
+        }
+
+        .code-header {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--accent);
+            background: rgba(118, 185, 0, 0.08);
+            padding: 0.4rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 1rem;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: #c9d1d9;
+        }
+
+        /* Syntax highlighting (manual) */
+        .kw { color: #ff7b72; }
+        .fn { color: #d2a8ff; }
+        .str { color: #a5d6ff; }
+        .cm { color: #8b949e; font-style: italic; }
+        .num { color: #79c0ff; }
+        .type { color: #ffa657; }
+        .dir { color: #ff7b72; }
+        .mac { color: #ffa657; }
+
+        /* ── Tables ── */
+        .table-wrap {
+            overflow-x: auto;
+            margin: 1.25rem 0;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: var(--bg-code);
+            color: var(--accent);
+            font-weight: 600;
+            text-align: left;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            font-family: var(--font-display);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 0.6rem 1rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:nth-child(even) td {
+            background: rgba(13, 17, 23, 0.5);
+        }
+
+        /* ── Diagrams ── */
+        .diagram-flow {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .diagram-box {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .diagram-box.accent {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(118, 185, 0, 0.08);
+        }
+
+        .diagram-box.dim {
+            color: var(--text-secondary);
+            border-color: var(--border);
+        }
+
+        .diagram-arrow {
+            color: var(--accent);
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        /* Vertical flow diagrams */
+        .diagram-vertical {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .diagram-vertical .diagram-arrow {
+            font-size: 1.1rem;
+        }
+
+        /* Nested hierarchy diagram */
+        .hierarchy {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .hierarchy-level {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .hierarchy-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .hierarchy-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+
+        .hierarchy-item {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .hierarchy-item.accent {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(118, 185, 0, 0.08);
+        }
+
+        /* Grid diagram */
+        .diagram-grid {
+            display: grid;
+            gap: 0.75rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .diagram-grid.cols-2 {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .diagram-grid.cols-3 {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .diagram-panel {
+            padding: 1rem;
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+        }
+
+        .diagram-panel.accent-border {
+            border-left: 3px solid var(--accent);
+        }
+
+        .diagram-panel h4 {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .diagram-panel p, .diagram-panel ul {
+            font-size: 0.85rem;
+        }
+
+        /* ── Callout Boxes ── */
+        .callout {
+            background: var(--bg-card);
+            border-left: 3px solid var(--accent);
+            border-radius: 0 8px 8px 0;
+            padding: 1rem 1.25rem;
+            margin: 1.25rem 0;
+        }
+
+        .callout p {
+            margin-bottom: 0;
+        }
+
+        .callout .callout-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.3rem;
+        }
+
+        /* ── Bank/Memory grid diagrams ── */
+        .bank-grid {
+            display: grid;
+            grid-template-columns: repeat(16, 1fr);
+            gap: 3px;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .bank-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-size: 0.55rem;
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            color: var(--text-secondary);
+        }
+
+        .bank-cell.active {
+            background: rgba(118, 185, 0, 0.15);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .bank-cell.conflict {
+            background: rgba(255, 123, 114, 0.12);
+            border-color: #ff7b72;
+            color: #ff7b72;
+        }
+
+        /* ── Pyramid diagram ── */
+        .pyramid {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            margin: 1.5rem 0;
+            padding: 1.5rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .pyramid-level {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            width: 100%;
+            margin-bottom: 2px;
+        }
+
+        .pyramid-bar {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 0.5rem 0;
+            text-align: center;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            background: var(--bg-code);
+            color: var(--text-primary);
+        }
+
+        .pyramid-bar.accent {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(118, 185, 0, 0.08);
+        }
+
+        .pyramid-stats {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            min-width: 140px;
+            text-align: right;
+        }
+
+        .pyramid-stats-right {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            min-width: 140px;
+            text-align: left;
+        }
+
+        /* ── Contents list ── */
+        .contents-list {
+            list-style: none;
+            padding-left: 0;
+            counter-reset: contents;
+        }
+
+        .contents-list li {
+            counter-increment: contents;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .contents-list li:last-child {
+            border-bottom: none;
+        }
+
+        .contents-list li::before {
+            content: counter(contents, decimal-leading-zero);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--accent);
+            min-width: 2rem;
+        }
+
+        .contents-list a {
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .contents-list a:hover {
+            color: var(--accent);
+        }
+
+        /* ── Footer ── */
+        .footer {
+            text-align: center;
+            padding: 3rem 1.5rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border);
+            max-width: var(--max-width);
+            margin: 0 auto;
+        }
+
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 640px) {
+            .slide {
+                padding: 3rem 1rem;
+                min-height: auto;
+            }
+
+            .slide-number {
+                font-size: 3rem;
+                top: 1.5rem;
+                right: 1rem;
+            }
+
+            .slide h2 {
+                font-size: 1.5rem;
+            }
+
+            .diagram-grid.cols-2,
+            .diagram-grid.cols-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .bank-grid {
+                grid-template-columns: repeat(8, 1fr);
+            }
+
+            .pipeline {
+                gap: 0.15rem;
+            }
+
+            .pipeline-step {
+                font-size: 0.6rem;
+                padding: 0.2rem 0.4rem;
+            }
+
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+
+            table {
+                font-size: 0.78rem;
+            }
+
+            .pyramid-stats, .pyramid-stats-right {
+                min-width: 80px;
+                font-size: 0.55rem;
+            }
+
+            .pyramid-bar {
+                font-size: 0.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════ HERO ════════════════════════════════════════════ -->
+<header class="hero">
+    <div class="series-label">CUDA Programming Series — Tutorial 04</div>
+    <h1><span class="accent">Memory</span> Hierarchy</h1>
+    <p class="subtitle">Global, shared, constant, texture, and register memory — access patterns, bank conflicts, coalescing rules, and when to use each level of the GPU memory hierarchy.</p>
+
+    <div class="tags">
+        <span class="tag">CUDA</span>
+        <span class="tag">Memory Hierarchy</span>
+        <span class="tag">Shared Memory</span>
+        <span class="tag">Global Memory</span>
+        <span class="tag">Coalescing</span>
+        <span class="tag">Bank Conflicts</span>
+    </div>
+
+    <div class="pipeline">
+        <span class="pipeline-step">Overview</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">Global Memory</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">Shared Memory</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">Tiling</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">Constant Memory</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">Registers</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">Unified Memory</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">Cheat Sheet</span>
+    </div>
+</header>
+
+<!-- ═══════════════════════════════ SLIDE 00 — Contents ═══════════════════════════════ -->
+<section class="slide" id="slide-00">
+    <div class="slide-number">00</div>
+    <h2>Topics We'll Cover</h2>
+    <p>This tutorial maps out every level of the CUDA memory hierarchy — from the fastest registers to the slowest global DRAM — and teaches you when and how to use each.</p>
+    <ul class="contents-list">
+        <li><a href="#slide-01">The Memory Hierarchy — Overview Diagram</a></li>
+        <li><a href="#slide-02">Global Memory — Coalesced Access Patterns</a></li>
+        <li><a href="#slide-03">Shared Memory — Banks &amp; Conflicts</a></li>
+        <li><a href="#slide-04">Shared Memory — Tiling Pattern</a></li>
+        <li><a href="#slide-05">Constant Memory</a></li>
+        <li><a href="#slide-06">Registers &amp; Local Memory</a></li>
+        <li><a href="#slide-07">Unified Memory (CUDA 6+)</a></li>
+        <li><a href="#slide-08">Memory Access Pattern Cheat Sheet</a></li>
+        <li><a href="#slide-09">Summary &amp; Next Steps</a></li>
+    </ul>
+    <div class="callout">
+        <div class="callout-label">Prerequisites</div>
+        <p>Tutorials 01&ndash;03. You should be comfortable with kernel launches, the thread/block/grid hierarchy, and basic host&ndash;device data transfers.</p>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════ SLIDE 01 — Memory Hierarchy Overview ═══════════════════════════════ -->
+<section class="slide" id="slide-01">
+    <div class="slide-number">01</div>
+    <h2>The Memory Hierarchy — Overview</h2>
+
+    <p>GPU memory is organised in a hierarchy trading off <strong>size</strong> for <strong>speed</strong>. Data that lives closer to the compute units is faster to access but far more limited in capacity.</p>
+
+    <h3>Memory Pyramid</h3>
+    <div class="pyramid">
+        <div class="pyramid-level">
+            <span class="pyramid-stats">~1 cycle &middot; KB per thread</span>
+            <div class="pyramid-bar accent" style="width: 20%;">Registers</div>
+            <span class="pyramid-stats-right">Fastest, smallest</span>
+        </div>
+        <div style="color: var(--accent); font-family: var(--font-mono); font-size: 0.7rem;">&darr;</div>
+        <div class="pyramid-level">
+            <span class="pyramid-stats">~5 cycles &middot; up to 228 KB/SM</span>
+            <div class="pyramid-bar accent" style="width: 35%;">Shared Memory / L1</div>
+            <span class="pyramid-stats-right">On-chip, per-block</span>
+        </div>
+        <div style="color: var(--accent); font-family: var(--font-mono); font-size: 0.7rem;">&darr;</div>
+        <div class="pyramid-level">
+            <span class="pyramid-stats">~30 cycles &middot; up to 6 MB</span>
+            <div class="pyramid-bar" style="width: 55%;">L2 Cache</div>
+            <span class="pyramid-stats-right">On-chip, device-wide</span>
+        </div>
+        <div style="color: var(--accent); font-family: var(--font-mono); font-size: 0.7rem;">&darr;</div>
+        <div class="pyramid-level">
+            <span class="pyramid-stats">~64 KB &middot; read-only cache</span>
+            <div class="pyramid-bar" style="width: 45%;">Constant / Texture</div>
+            <span class="pyramid-stats-right">Cached, specialised</span>
+        </div>
+        <div style="color: var(--accent); font-family: var(--font-mono); font-size: 0.7rem;">&darr;</div>
+        <div class="pyramid-level">
+            <span class="pyramid-stats">~400-800 cycles &middot; 8-80 GB</span>
+            <div class="pyramid-bar" style="width: 80%;">Global Memory (DRAM)</div>
+            <span class="pyramid-stats-right">Slowest, largest</span>
+        </div>
+    </div>
+
+    <h3>Bandwidth at Each Level</h3>
+    <div class="table-wrap">
+        <table>
+            <tr>
+                <th>Memory Level</th>
+                <th>Latency</th>
+                <th>Bandwidth</th>
+                <th>Scope</th>
+            </tr>
+            <tr>
+                <td><strong>Registers</strong></td>
+                <td style="color: var(--accent);">~1 cycle</td>
+                <td>~8 TB/s (aggregate)</td>
+                <td>Per-thread</td>
+            </tr>
+            <tr>
+                <td><strong>Shared / L1</strong></td>
+                <td style="color: var(--accent);">~5 cycles</td>
+                <td>~12 TB/s (aggregate)</td>
+                <td>Per-block</td>
+            </tr>
+            <tr>
+                <td><strong>L2 Cache</strong></td>
+                <td>~30 cycles</td>
+                <td>~4 TB/s</td>
+                <td>Device-wide</td>
+            </tr>
+            <tr>
+                <td><strong>Constant Cache</strong></td>
+                <td>~5 cycles (hit)</td>
+                <td>Broadcast to warp</td>
+                <td>Device-wide, read-only</td>
+            </tr>
+            <tr>
+                <td><strong>Global (DRAM)</strong></td>
+                <td>~400&ndash;800 cycles</td>
+                <td>~1&ndash;3 TB/s</td>
+                <td>Device-wide</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">Key Insight</div>
+        <p>Global memory access is <strong>100&ndash;800&times; slower</strong> than a register read. The entire art of CUDA optimisation is about moving data up the hierarchy — from global to shared to registers — before computing on it.</p>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════ SLIDE 02 — Global Memory ═══════════════════════════════ -->
+<section class="slide" id="slide-02">
+    <div class="slide-number">02</div>
+    <h2>Global Memory</h2>
+
+    <p>Global memory is the largest and slowest memory on the GPU. It is allocated on the host with <strong>cudaMalloc</strong> and persists for the lifetime of the allocation. Every thread in every block can read and write it.</p>
+
+    <h3>Allocation &amp; Deallocation</h3>
+    <div class="code-block">
+        <div class="code-header">global_memory_basics.cu</div>
+        <pre><code><span class="type">float</span> *d_data;
+<span class="type">size_t</span> bytes = N * <span class="kw">sizeof</span>(<span class="type">float</span>);
+
+<span class="fn">cudaMalloc</span>((<span class="type">void</span>**)&amp;d_data, bytes);          <span class="cm">// allocate on device</span>
+<span class="fn">cudaMemcpy</span>(d_data, h_data, bytes,
+           cudaMemcpyHostToDevice);             <span class="cm">// copy host → device</span>
+
+myKernel&lt;&lt;&lt;grid, block&gt;&gt;&gt;(d_data, N);         <span class="cm">// launch kernel</span>
+
+<span class="fn">cudaMemcpy</span>(h_data, d_data, bytes,
+           cudaMemcpyDeviceToHost);             <span class="cm">// copy device → host</span>
+<span class="fn">cudaFree</span>(d_data);                              <span class="cm">// release memory</span></code></pre>
+    </div>
+
+    <h3>Coalesced vs Uncoalesced Access</h3>
+    <p>When all 32 threads in a warp access <strong>consecutive 4-byte addresses</strong>, the hardware combines them into a single 128-byte transaction. This is <strong>coalesced access</strong> — the fastest way to read global memory.</p>
+
+    <div style="padding: 1.25rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; margin: 1.25rem 0;">
+        <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent); margin-bottom: 0.75rem; text-align: center;">Coalesced Access &mdash; 1 Transaction (128 bytes)</div>
+        <div style="display: flex; gap: 2px; justify-content: center; margin-bottom: 0.5rem;">
+            <div style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-secondary); width: 60px; text-align: right; padding-top: 0.25rem;">Threads:</div>
+            <div style="display: grid; grid-template-columns: repeat(16, 1fr); gap: 2px; flex: 1; max-width: 500px;">
+                <div class="bank-cell active">T0</div><div class="bank-cell active">T1</div><div class="bank-cell active">T2</div><div class="bank-cell active">T3</div>
+                <div class="bank-cell active">T4</div><div class="bank-cell active">T5</div><div class="bank-cell active">T6</div><div class="bank-cell active">T7</div>
+                <div class="bank-cell active">T8</div><div class="bank-cell active">T9</div><div class="bank-cell active">T10</div><div class="bank-cell active">T11</div>
+                <div class="bank-cell active">T12</div><div class="bank-cell active">T13</div><div class="bank-cell active">T14</div><div class="bank-cell active">T15</div>
+            </div>
+        </div>
+        <div style="text-align: center; color: var(--accent); font-family: var(--font-mono); font-size: 0.8rem;">&darr; &darr; &darr; &darr; &darr; &darr; &darr; &darr; &darr; &darr; &darr; &darr; &darr; &darr; &darr; &darr;</div>
+        <div style="display: flex; gap: 2px; justify-content: center; margin-top: 0.5rem;">
+            <div style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-secondary); width: 60px; text-align: right; padding-top: 0.25rem;">Addrs:</div>
+            <div style="display: grid; grid-template-columns: repeat(16, 1fr); gap: 2px; flex: 1; max-width: 500px;">
+                <div class="bank-cell active">0</div><div class="bank-cell active">4</div><div class="bank-cell active">8</div><div class="bank-cell active">12</div>
+                <div class="bank-cell active">16</div><div class="bank-cell active">20</div><div class="bank-cell active">24</div><div class="bank-cell active">28</div>
+                <div class="bank-cell active">32</div><div class="bank-cell active">36</div><div class="bank-cell active">40</div><div class="bank-cell active">44</div>
+                <div class="bank-cell active">48</div><div class="bank-cell active">52</div><div class="bank-cell active">56</div><div class="bank-cell active">60</div>
+            </div>
+        </div>
+        <div style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--accent); margin-top: 0.5rem; text-align: center;">Thread i reads address base + i*4 &rarr; sequential &rarr; 1 transaction</div>
+    </div>
+
+    <div style="padding: 1.25rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; margin: 1.25rem 0;">
+        <div style="font-family: var(--font-mono); font-size: 0.75rem; color: #ff7b72; margin-bottom: 0.75rem; text-align: center;">Strided Access &mdash; Multiple Transactions (wasteful)</div>
+        <div style="display: flex; gap: 2px; justify-content: center; margin-bottom: 0.5rem;">
+            <div style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-secondary); width: 60px; text-align: right; padding-top: 0.25rem;">Threads:</div>
+            <div style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; flex: 1; max-width: 300px;">
+                <div class="bank-cell conflict">T0</div><div class="bank-cell conflict">T1</div><div class="bank-cell conflict">T2</div><div class="bank-cell conflict">T3</div>
+                <div class="bank-cell conflict">T4</div><div class="bank-cell conflict">T5</div><div class="bank-cell conflict">T6</div><div class="bank-cell conflict">T7</div>
+            </div>
+        </div>
+        <div style="text-align: center; color: #ff7b72; font-family: var(--font-mono); font-size: 0.8rem;">&darr; &nbsp; &darr; &nbsp; &darr; &nbsp; &darr; &nbsp; &darr; &nbsp; &darr; &nbsp; &darr; &nbsp; &darr;</div>
+        <div style="display: flex; gap: 2px; justify-content: center; margin-top: 0.5rem;">
+            <div style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-secondary); width: 60px; text-align: right; padding-top: 0.25rem;">Addrs:</div>
+            <div style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; flex: 1; max-width: 300px;">
+                <div class="bank-cell conflict">0</div><div class="bank-cell conflict">128</div><div class="bank-cell conflict">256</div><div class="bank-cell conflict">384</div>
+                <div class="bank-cell conflict">512</div><div class="bank-cell conflict">640</div><div class="bank-cell conflict">768</div><div class="bank-cell conflict">896</div>
+            </div>
+        </div>
+        <div style="font-family: var(--font-mono); font-size: 0.65rem; color: #ff7b72; margin-top: 0.5rem; text-align: center;">Thread i reads address base + i*128 &rarr; scattered &rarr; 8 transactions</div>
+    </div>
+
+    <div class="code-block">
+        <div class="code-header">coalesced_vs_strided.cu</div>
+        <pre><code><span class="cm">// COALESCED: thread i reads element i</span>
+<span class="type">float</span> val = data[threadIdx.x];                <span class="cm">// stride-1 access &rarr; fast</span>
+
+<span class="cm">// STRIDED: thread i reads element i * stride</span>
+<span class="type">float</span> val = data[threadIdx.x * <span class="num">32</span>];           <span class="cm">// stride-32 access &rarr; slow</span>
+
+<span class="cm">// RANDOM: thread i reads a random index</span>
+<span class="type">float</span> val = data[indices[threadIdx.x]];       <span class="cm">// scatter access &rarr; slowest</span></code></pre>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">Rule of Thumb</div>
+        <p>Always have consecutive threads access consecutive memory addresses. If your data layout forces strided access, consider transposing it or using shared memory as a staging buffer.</p>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════ SLIDE 03 — Shared Memory ═══════════════════════════════ -->
+<section class="slide" id="slide-03">
+    <div class="slide-number">03</div>
+    <h2>Shared Memory</h2>
+
+    <p>Shared memory is <strong>on-chip SRAM</strong> that is private to each thread block. It is roughly <strong>100&times; faster</strong> than global memory and is the primary tool for inter-thread communication within a block.</p>
+
+    <h3>Declaration</h3>
+    <div class="code-block">
+        <div class="code-header">shared_memory_basics.cu</div>
+        <pre><code><span class="dir">__global__</span> <span class="type">void</span> <span class="fn">myKernel</span>(<span class="type">float</span> *data) {
+    <span class="cm">// Static allocation — size known at compile time</span>
+    <span class="dir">__shared__</span> <span class="type">float</span> tile[<span class="num">256</span>];
+
+    <span class="cm">// Dynamic allocation — size set at launch</span>
+    <span class="kw">extern</span> <span class="dir">__shared__</span> <span class="type">float</span> dynTile[];
+
+    tile[threadIdx.x] = data[blockIdx.x * blockDim.x + threadIdx.x];
+    <span class="fn">__syncthreads</span>();   <span class="cm">// barrier: all threads must finish writing</span>
+
+    <span class="cm">// Now all threads can safely read any element of tile[]</span>
+}</code></pre>
+    </div>
+
+    <h3>Key Properties</h3>
+    <div class="diagram-grid cols-3">
+        <div class="diagram-panel accent-border">
+            <h4>Per-Block</h4>
+            <p>Each block gets its own copy. Threads in different blocks cannot share data through shared memory.</p>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>On-Chip</h4>
+            <p>Located on the SM die alongside compute units. ~5 cycle latency vs ~400+ cycles for global memory.</p>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>Limited</h4>
+            <p>48&ndash;228 KB per SM (architecture-dependent). Shared across all active blocks on that SM.</p>
+        </div>
+    </div>
+
+    <h3>Bank Conflicts</h3>
+    <p>Shared memory is divided into <strong>32 banks</strong> (one per warp lane). Each bank can serve one address per cycle. When two threads in a warp access <strong>different addresses in the same bank</strong>, the accesses are serialised — this is a <strong>bank conflict</strong>.</p>
+
+    <div style="padding: 1.25rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; margin: 1.25rem 0;">
+        <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent); margin-bottom: 0.75rem; text-align: center;">No Bank Conflict &mdash; Each Thread Hits a Different Bank</div>
+        <div style="display: flex; gap: 2px; justify-content: center; margin-bottom: 0.3rem;">
+            <div style="font-family: var(--font-mono); font-size: 0.55rem; color: var(--text-secondary); width: 50px; text-align: right; padding-top: 0.2rem;">Thread:</div>
+            <div style="display: grid; grid-template-columns: repeat(16, 1fr); gap: 2px; flex: 1; max-width: 480px;">
+                <div class="bank-cell active">T0</div><div class="bank-cell active">T1</div><div class="bank-cell active">T2</div><div class="bank-cell active">T3</div>
+                <div class="bank-cell active">T4</div><div class="bank-cell active">T5</div><div class="bank-cell active">T6</div><div class="bank-cell active">T7</div>
+                <div class="bank-cell active">T8</div><div class="bank-cell active">T9</div><div class="bank-cell active">T10</div><div class="bank-cell active">T11</div>
+                <div class="bank-cell active">T12</div><div class="bank-cell active">T13</div><div class="bank-cell active">T14</div><div class="bank-cell active">T15</div>
+            </div>
+        </div>
+        <div style="text-align: center; color: var(--accent); font-family: var(--font-mono); font-size: 0.7rem;">&darr; &darr; &darr; &darr; &darr; &darr; &darr; &darr; &darr; &darr; &darr; &darr; &darr; &darr; &darr; &darr;</div>
+        <div style="display: flex; gap: 2px; justify-content: center; margin-top: 0.3rem;">
+            <div style="font-family: var(--font-mono); font-size: 0.55rem; color: var(--text-secondary); width: 50px; text-align: right; padding-top: 0.2rem;">Bank:</div>
+            <div style="display: grid; grid-template-columns: repeat(16, 1fr); gap: 2px; flex: 1; max-width: 480px;">
+                <div class="bank-cell active">B0</div><div class="bank-cell active">B1</div><div class="bank-cell active">B2</div><div class="bank-cell active">B3</div>
+                <div class="bank-cell active">B4</div><div class="bank-cell active">B5</div><div class="bank-cell active">B6</div><div class="bank-cell active">B7</div>
+                <div class="bank-cell active">B8</div><div class="bank-cell active">B9</div><div class="bank-cell active">B10</div><div class="bank-cell active">B11</div>
+                <div class="bank-cell active">B12</div><div class="bank-cell active">B13</div><div class="bank-cell active">B14</div><div class="bank-cell active">B15</div>
+            </div>
+        </div>
+        <div style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--accent); margin-top: 0.5rem; text-align: center;">smem[threadIdx.x] &rarr; stride-1 &rarr; all 32 banks used &rarr; 1 cycle</div>
+    </div>
+
+    <div style="padding: 1.25rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; margin: 1.25rem 0;">
+        <div style="font-family: var(--font-mono); font-size: 0.75rem; color: #ff7b72; margin-bottom: 0.75rem; text-align: center;">2-Way Bank Conflict &mdash; Even Threads Collide</div>
+        <div style="display: flex; gap: 2px; justify-content: center; margin-bottom: 0.3rem;">
+            <div style="font-family: var(--font-mono); font-size: 0.55rem; color: var(--text-secondary); width: 50px; text-align: right; padding-top: 0.2rem;">Thread:</div>
+            <div style="display: grid; grid-template-columns: repeat(16, 1fr); gap: 2px; flex: 1; max-width: 480px;">
+                <div class="bank-cell conflict">T0</div><div class="bank-cell active">T1</div><div class="bank-cell conflict">T2</div><div class="bank-cell active">T3</div>
+                <div class="bank-cell conflict">T4</div><div class="bank-cell active">T5</div><div class="bank-cell conflict">T6</div><div class="bank-cell active">T7</div>
+                <div class="bank-cell conflict">T8</div><div class="bank-cell active">T9</div><div class="bank-cell conflict">T10</div><div class="bank-cell active">T11</div>
+                <div class="bank-cell conflict">T12</div><div class="bank-cell active">T13</div><div class="bank-cell conflict">T14</div><div class="bank-cell active">T15</div>
+            </div>
+        </div>
+        <div style="text-align: center; color: #ff7b72; font-family: var(--font-mono); font-size: 0.7rem;">&darr;&nbsp;&darr; &darr;&nbsp;&darr; &darr;&nbsp;&darr; &darr;&nbsp;&darr; &darr;&nbsp;&darr; &darr;&nbsp;&darr; &darr;&nbsp;&darr; &darr;&nbsp;&darr;</div>
+        <div style="display: flex; gap: 2px; justify-content: center; margin-top: 0.3rem;">
+            <div style="font-family: var(--font-mono); font-size: 0.55rem; color: var(--text-secondary); width: 50px; text-align: right; padding-top: 0.2rem;">Bank:</div>
+            <div style="display: grid; grid-template-columns: repeat(16, 1fr); gap: 2px; flex: 1; max-width: 480px;">
+                <div class="bank-cell conflict">B0</div><div class="bank-cell conflict">B2</div><div class="bank-cell conflict">B4</div><div class="bank-cell conflict">B6</div>
+                <div class="bank-cell conflict">B8</div><div class="bank-cell conflict">B10</div><div class="bank-cell conflict">B12</div><div class="bank-cell conflict">B14</div>
+                <div class="bank-cell conflict">B16</div><div class="bank-cell conflict">B18</div><div class="bank-cell conflict">B20</div><div class="bank-cell conflict">B22</div>
+                <div class="bank-cell conflict">B24</div><div class="bank-cell conflict">B26</div><div class="bank-cell conflict">B28</div><div class="bank-cell conflict">B30</div>
+            </div>
+        </div>
+        <div style="font-family: var(--font-mono); font-size: 0.65rem; color: #ff7b72; margin-top: 0.5rem; text-align: center;">smem[threadIdx.x * 2] &rarr; stride-2 &rarr; T0 &amp; T16 hit bank 0 &rarr; 2-way conflict</div>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">Avoiding Bank Conflicts</div>
+        <p>Use <strong>stride-1</strong> access patterns (consecutive threads access consecutive words). If you need a stride that is a power of 2, add 1 element of padding to each row: <code style="color: var(--accent);">__shared__ float tile[32][32+1];</code></p>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════ SLIDE 04 — Tiling Pattern ═══════════════════════════════ -->
+<section class="slide" id="slide-04">
+    <div class="slide-number">04</div>
+    <h2>Shared Memory — Tiling Pattern</h2>
+
+    <p>The <strong>tiling pattern</strong> is the most important shared memory technique. The idea: load a tile of data from slow global memory into fast shared memory, synchronise, then compute from the shared copy.</p>
+
+    <h3>The Pattern</h3>
+    <div class="diagram-flow">
+        <div class="diagram-box">Global Memory</div>
+        <div class="diagram-arrow">&rarr;</div>
+        <div class="diagram-box accent">Load Tile to Shared</div>
+        <div class="diagram-arrow">&rarr;</div>
+        <div class="diagram-box">__syncthreads()</div>
+        <div class="diagram-arrow">&rarr;</div>
+        <div class="diagram-box accent">Compute from Shared</div>
+        <div class="diagram-arrow">&rarr;</div>
+        <div class="diagram-box">Write Result to Global</div>
+    </div>
+
+    <h3>Example: 1D Stencil with Halo Cells</h3>
+    <p>A 1D stencil computes each output element from a neighbourhood of input elements. This example uses a <strong>radius-3 stencil</strong> — each output depends on 7 input values. The halo cells are the extra elements needed at the tile boundaries.</p>
+
+    <div class="code-block">
+        <div class="code-header">stencil_1d.cu — Complete, Compilable Program</div>
+        <pre><code><span class="dir">#include</span> <span class="str">&lt;cstdio&gt;</span>
+<span class="dir">#include</span> <span class="str">&lt;cstdlib&gt;</span>
+<span class="dir">#include</span> <span class="str">&lt;cuda_runtime.h&gt;</span>
+
+<span class="dir">#define</span> <span class="mac">RADIUS</span>     <span class="num">3</span>
+<span class="dir">#define</span> <span class="mac">BLOCK_SIZE</span> <span class="num">256</span>
+
+<span class="cm">// ── 1D stencil kernel using shared memory with halo cells ──</span>
+<span class="dir">__global__</span> <span class="type">void</span> <span class="fn">stencil1D</span>(<span class="kw">const</span> <span class="type">float</span> *in, <span class="type">float</span> *out, <span class="type">int</span> n) {
+    <span class="cm">// Shared tile: BLOCK_SIZE elements + RADIUS on each side</span>
+    <span class="dir">__shared__</span> <span class="type">float</span> tile[<span class="mac">BLOCK_SIZE</span> + <span class="num">2</span> * <span class="mac">RADIUS</span>];
+
+    <span class="type">int</span> gIdx = blockIdx.x * blockDim.x + threadIdx.x;
+    <span class="type">int</span> lIdx = threadIdx.x + <span class="mac">RADIUS</span>;  <span class="cm">// offset for halo</span>
+
+    <span class="cm">// Load the main body of the tile</span>
+    <span class="kw">if</span> (gIdx &lt; n)
+        tile[lIdx] = in[gIdx];
+    <span class="kw">else</span>
+        tile[lIdx] = <span class="num">0.0f</span>;
+
+    <span class="cm">// Load left halo</span>
+    <span class="kw">if</span> (threadIdx.x &lt; <span class="mac">RADIUS</span>) {
+        <span class="type">int</span> haloIdx = gIdx - <span class="mac">RADIUS</span>;
+        tile[threadIdx.x] = (haloIdx &gt;= <span class="num">0</span>) ? in[haloIdx] : <span class="num">0.0f</span>;
+    }
+
+    <span class="cm">// Load right halo</span>
+    <span class="kw">if</span> (threadIdx.x &gt;= <span class="mac">BLOCK_SIZE</span> - <span class="mac">RADIUS</span>) {
+        <span class="type">int</span> haloIdx = gIdx + <span class="mac">RADIUS</span>;
+        tile[lIdx + <span class="mac">RADIUS</span>] = (haloIdx &lt; n) ? in[haloIdx] : <span class="num">0.0f</span>;
+    }
+
+    <span class="fn">__syncthreads</span>();  <span class="cm">// all data in shared memory now</span>
+
+    <span class="cm">// Compute stencil: average of 2*RADIUS+1 neighbours</span>
+    <span class="kw">if</span> (gIdx &lt; n) {
+        <span class="type">float</span> sum = <span class="num">0.0f</span>;
+        <span class="kw">for</span> (<span class="type">int</span> offset = -<span class="mac">RADIUS</span>; offset &lt;= <span class="mac">RADIUS</span>; offset++)
+            sum += tile[lIdx + offset];
+        out[gIdx] = sum / (<span class="num">2</span> * <span class="mac">RADIUS</span> + <span class="num">1</span>);
+    }
+}
+
+<span class="cm">// ── Host code ──</span>
+<span class="type">int</span> <span class="fn">main</span>() {
+    <span class="kw">const</span> <span class="type">int</span> N = <span class="num">1024</span>;
+    <span class="type">size_t</span> bytes = N * <span class="kw">sizeof</span>(<span class="type">float</span>);
+
+    <span class="cm">// Allocate host memory</span>
+    <span class="type">float</span> *h_in  = (<span class="type">float</span>*)<span class="fn">malloc</span>(bytes);
+    <span class="type">float</span> *h_out = (<span class="type">float</span>*)<span class="fn">malloc</span>(bytes);
+
+    <span class="cm">// Initialise input: simple ramp</span>
+    <span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i &lt; N; i++)
+        h_in[i] = (<span class="type">float</span>)i;
+
+    <span class="cm">// Allocate device memory</span>
+    <span class="type">float</span> *d_in, *d_out;
+    <span class="fn">cudaMalloc</span>(&amp;d_in,  bytes);
+    <span class="fn">cudaMalloc</span>(&amp;d_out, bytes);
+
+    <span class="cm">// Copy input to device</span>
+    <span class="fn">cudaMemcpy</span>(d_in, h_in, bytes, cudaMemcpyHostToDevice);
+
+    <span class="cm">// Launch kernel</span>
+    <span class="type">int</span> gridSize = (N + <span class="mac">BLOCK_SIZE</span> - <span class="num">1</span>) / <span class="mac">BLOCK_SIZE</span>;
+    stencil1D&lt;&lt;&lt;gridSize, <span class="mac">BLOCK_SIZE</span>&gt;&gt;&gt;(d_in, d_out, N);
+
+    <span class="cm">// Copy result back</span>
+    <span class="fn">cudaMemcpy</span>(h_out, d_out, bytes, cudaMemcpyDeviceToHost);
+
+    <span class="cm">// Verify a few values</span>
+    <span class="fn">printf</span>(<span class="str">"Stencil results (radius=%d):\n"</span>, <span class="mac">RADIUS</span>);
+    <span class="kw">for</span> (<span class="type">int</span> i = <span class="mac">RADIUS</span>; i &lt; <span class="mac">RADIUS</span> + <span class="num">5</span>; i++)
+        <span class="fn">printf</span>(<span class="str">"  out[%d] = %.2f  (expected %.2f)\n"</span>,
+               i, h_out[i], (<span class="type">float</span>)i);
+
+    <span class="cm">// Cleanup</span>
+    <span class="fn">cudaFree</span>(d_in);
+    <span class="fn">cudaFree</span>(d_out);
+    <span class="fn">free</span>(h_in);
+    <span class="fn">free</span>(h_out);
+
+    <span class="kw">return</span> <span class="num">0</span>;
+}</code></pre>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">Why Tiling Helps</div>
+        <p>Without shared memory, each thread would read 7 values from global memory. With 256 threads, that is 1,792 global reads. With tiling, we load only 256 + 6 = 262 values from global memory into shared, then each thread reads its 7 neighbours from fast shared memory. <strong>6.8&times; fewer global transactions.</strong></p>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════ SLIDE 05 — Constant Memory ═══════════════════════════════ -->
+<section class="slide" id="slide-05">
+    <div class="slide-number">05</div>
+    <h2>Constant Memory</h2>
+
+    <p>Constant memory is a <strong>64 KB read-only</strong> region that is cached on-chip. When all threads in a warp read the <strong>same address</strong>, the value is broadcast to all 32 threads in a single cycle — perfect for lookup tables, filter coefficients, and configuration parameters.</p>
+
+    <h3>Declaration &amp; Usage</h3>
+    <div class="code-block">
+        <div class="code-header">constant_memory.cu</div>
+        <pre><code><span class="cm">// Declare at file scope (not inside a function)</span>
+<span class="dir">__constant__</span> <span class="type">float</span> coeffs[<span class="num">7</span>];
+
+<span class="dir">__global__</span> <span class="type">void</span> <span class="fn">applyFilter</span>(<span class="kw">const</span> <span class="type">float</span> *in, <span class="type">float</span> *out, <span class="type">int</span> n) {
+    <span class="type">int</span> i = blockIdx.x * blockDim.x + threadIdx.x;
+    <span class="kw">if</span> (i &lt; n) {
+        <span class="type">float</span> sum = <span class="num">0.0f</span>;
+        <span class="kw">for</span> (<span class="type">int</span> k = <span class="num">0</span>; k &lt; <span class="num">7</span>; k++)
+            sum += coeffs[k] * in[i + k];   <span class="cm">// all threads read same coeffs[k]</span>
+        out[i] = sum;
+    }
+}
+
+<span class="type">int</span> <span class="fn">main</span>() {
+    <span class="type">float</span> h_coeffs[<span class="num">7</span>] = {<span class="num">0.1f</span>, <span class="num">0.15f</span>, <span class="num">0.2f</span>, <span class="num">0.1f</span>, <span class="num">0.2f</span>, <span class="num">0.15f</span>, <span class="num">0.1f</span>};
+
+    <span class="cm">// Copy to constant memory — not cudaMemcpy!</span>
+    <span class="fn">cudaMemcpyToSymbol</span>(coeffs, h_coeffs, <span class="num">7</span> * <span class="kw">sizeof</span>(<span class="type">float</span>));
+
+    <span class="cm">// ... allocate, launch, etc.</span>
+}</code></pre>
+    </div>
+
+    <h3>When Constant Memory Shines (and When It Doesn't)</h3>
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>Use Constant Memory</h4>
+            <ul>
+                <li>All threads read the <strong>same value</strong> (uniform access)</li>
+                <li>Data is small (&le; 64 KB)</li>
+                <li>Data is read-only during kernel execution</li>
+                <li>Examples: filter weights, physical constants, lookup tables</li>
+            </ul>
+        </div>
+        <div class="diagram-panel" style="border-left: 3px solid #ff7b72;">
+            <h4 style="color: #ff7b72;">Avoid Constant Memory</h4>
+            <ul>
+                <li>Threads read <strong>different addresses</strong> (serialised: 32 reads)</li>
+                <li>Data exceeds 64 KB</li>
+                <li>Data changes between kernel launches frequently</li>
+                <li>In those cases, use global memory with L1/L2 caching</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">Broadcast Mechanism</div>
+        <p>The constant cache can serve one address per cycle. If all 32 threads request the same address, the value is <strong>broadcast</strong> to the entire warp for free. If all 32 request different addresses, it takes 32 serialised cycles — worse than a global memory read.</p>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════ SLIDE 06 — Registers & Local Memory ═══════════════════════════════ -->
+<section class="slide" id="slide-06">
+    <div class="slide-number">06</div>
+    <h2>Registers &amp; Local Memory</h2>
+
+    <p>Registers are the <strong>fastest</strong> storage on the GPU — zero additional latency beyond the instruction itself. Every automatic (local) variable in your kernel lives in a register, unless the compiler runs out of space.</p>
+
+    <h3>Register Allocation</h3>
+    <div class="code-block">
+        <div class="code-header">register_usage.cu</div>
+        <pre><code><span class="dir">__global__</span> <span class="type">void</span> <span class="fn">compute</span>(<span class="type">float</span> *data, <span class="type">int</span> n) {
+    <span class="type">int</span> idx = blockIdx.x * blockDim.x + threadIdx.x;  <span class="cm">// register</span>
+    <span class="type">float</span> a = data[idx];                               <span class="cm">// register</span>
+    <span class="type">float</span> b = a * a;                                    <span class="cm">// register</span>
+    <span class="type">float</span> c = b + <span class="num">1.0f</span>;                                 <span class="cm">// register</span>
+    data[idx] = c;
+
+    <span class="cm">// Large arrays CANNOT fit in registers:</span>
+    <span class="type">float</span> bigArray[<span class="num">1024</span>];  <span class="cm">// SPILLS to local memory (slow!)</span>
+}</code></pre>
+    </div>
+
+    <h3>Register Pressure</h3>
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>Low Register Pressure</h4>
+            <ul>
+                <li>Fewer registers per thread</li>
+                <li>More threads can fit on an SM</li>
+                <li>Higher <strong>occupancy</strong></li>
+                <li>Better latency hiding</li>
+            </ul>
+        </div>
+        <div class="diagram-panel" style="border-left: 3px solid #ff7b72;">
+            <h4 style="color: #ff7b72;">High Register Pressure</h4>
+            <ul>
+                <li>Many registers per thread</li>
+                <li>Fewer active warps per SM</li>
+                <li>Lower <strong>occupancy</strong></li>
+                <li>Risk of <strong>register spilling</strong></li>
+            </ul>
+        </div>
+    </div>
+
+    <h3>Register Spilling &rarr; Local Memory</h3>
+    <p>When a thread needs more registers than available (typically 255 per thread), the compiler <strong>spills</strong> variables to <strong>local memory</strong>. Despite the name, local memory is actually stored in <strong>global DRAM</strong> — it is private to each thread but as slow as global memory.</p>
+
+    <div class="diagram-vertical">
+        <div class="diagram-box accent" style="width: 60%;">Registers (fastest)</div>
+        <div class="diagram-arrow">&darr; spill</div>
+        <div class="diagram-box" style="width: 70%; border-color: #ff7b72; color: #ff7b72;">Local Memory (DRAM speed!)</div>
+        <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.5rem;">Local memory = private per-thread, but lives in global DRAM</div>
+    </div>
+
+    <h3>Controlling Register Usage</h3>
+    <div class="code-block">
+        <div class="code-header">limit_registers.cu</div>
+        <pre><code><span class="cm">// Method 1: Compiler flag</span>
+<span class="cm">// nvcc --maxrregcount=32 kernel.cu</span>
+
+<span class="cm">// Method 2: Per-kernel attribute</span>
+<span class="dir">__global__</span> <span class="dir">__launch_bounds__</span>(<span class="num">256</span>, <span class="num">4</span>)  <span class="cm">// max 256 threads, min 4 blocks/SM</span>
+<span class="type">void</span> <span class="fn">myKernel</span>(...) {
+    <span class="cm">// compiler will limit registers to allow 4 blocks of 256 threads</span>
+}</code></pre>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">Checking Register Usage</div>
+        <p>Compile with <code style="color: var(--accent);">nvcc --ptxas-options=-v</code> to see per-kernel register, shared memory, and local memory usage. Target fewer than 32&ndash;64 registers per thread for good occupancy.</p>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════ SLIDE 07 — Unified Memory ═══════════════════════════════ -->
+<section class="slide" id="slide-07">
+    <div class="slide-number">07</div>
+    <h2>Unified Memory (CUDA 6+)</h2>
+
+    <p>Unified Memory provides a <strong>single pointer</strong> that is accessible from both the CPU and GPU. The CUDA runtime automatically migrates pages between host and device memory as needed — no explicit <code>cudaMemcpy</code> calls required.</p>
+
+    <h3>Basic Usage</h3>
+    <div class="code-block">
+        <div class="code-header">unified_memory.cu</div>
+        <pre><code><span class="type">float</span> *data;
+<span class="fn">cudaMallocManaged</span>(&amp;data, N * <span class="kw">sizeof</span>(<span class="type">float</span>));
+
+<span class="cm">// Initialise on the CPU — no cudaMemcpy needed</span>
+<span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i &lt; N; i++)
+    data[i] = (<span class="type">float</span>)i;
+
+<span class="cm">// Launch kernel — pages migrate to GPU automatically</span>
+myKernel&lt;&lt;&lt;grid, block&gt;&gt;&gt;(data, N);
+<span class="fn">cudaDeviceSynchronize</span>();
+
+<span class="cm">// Read results on CPU — pages migrate back automatically</span>
+<span class="fn">printf</span>(<span class="str">"Result: %f\n"</span>, data[<span class="num">0</span>]);
+
+<span class="fn">cudaFree</span>(data);  <span class="cm">// single free for both host and device</span></code></pre>
+    </div>
+
+    <h3>Under the Hood: Page Migration</h3>
+    <div class="diagram-flow">
+        <div class="diagram-box">CPU writes data</div>
+        <div class="diagram-arrow">&rarr;</div>
+        <div class="diagram-box accent">Pages on Host</div>
+        <div class="diagram-arrow">&rarr;</div>
+        <div class="diagram-box">Kernel launches</div>
+        <div class="diagram-arrow">&rarr;</div>
+        <div class="diagram-box accent">Pages Migrate to Device</div>
+        <div class="diagram-arrow">&rarr;</div>
+        <div class="diagram-box">CPU reads result</div>
+        <div class="diagram-arrow">&rarr;</div>
+        <div class="diagram-box accent">Pages Migrate to Host</div>
+    </div>
+
+    <h3>Trade-offs</h3>
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>Advantages</h4>
+            <ul>
+                <li>Simpler code — no manual copies</li>
+                <li>Easy to port CPU code to GPU</li>
+                <li>Handles complex data structures (linked lists, trees)</li>
+                <li>Oversubscription: allocate more than GPU memory</li>
+            </ul>
+        </div>
+        <div class="diagram-panel" style="border-left: 3px solid #ff7b72;">
+            <h4 style="color: #ff7b72;">Considerations</h4>
+            <ul>
+                <li>Page faults add latency on first access</li>
+                <li>Migration overhead can hurt performance</li>
+                <li>For peak throughput, explicit <code>cudaMemcpy</code> still wins</li>
+                <li>Use <code style="color: var(--accent);">cudaMemPrefetchAsync</code> to pre-migrate</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">DGX Spark / Grace Hopper Note</div>
+        <p>NVIDIA's Grace Hopper architecture features <strong>unified CPU+GPU memory</strong> with NVLink-C2C, where CPU and GPU share the same physical memory pool. On such systems, <code>cudaMallocManaged</code> incurs virtually zero migration overhead — the memory is already coherent. This makes unified memory the natural programming model for Grace Hopper and DGX Spark systems.</p>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════ SLIDE 08 — Cheat Sheet ═══════════════════════════════ -->
+<section class="slide" id="slide-08">
+    <div class="slide-number">08</div>
+    <h2>Memory Access Pattern Cheat Sheet</h2>
+
+    <p>Quick reference for choosing the right memory type for your data.</p>
+
+    <div class="table-wrap">
+        <table>
+            <tr>
+                <th>Memory Type</th>
+                <th>Location</th>
+                <th>Scope</th>
+                <th>Speed</th>
+                <th>Size</th>
+                <th>Typical Use</th>
+            </tr>
+            <tr>
+                <td><strong>Registers</strong></td>
+                <td>On-chip</td>
+                <td>Per-thread</td>
+                <td style="color: var(--accent);">~1 cycle</td>
+                <td>~255 per thread</td>
+                <td>Local variables, accumulators</td>
+            </tr>
+            <tr>
+                <td><strong>Shared</strong></td>
+                <td>On-chip</td>
+                <td>Per-block</td>
+                <td style="color: var(--accent);">~5 cycles</td>
+                <td>48&ndash;228 KB/SM</td>
+                <td>Tiling, reductions, inter-thread comms</td>
+            </tr>
+            <tr>
+                <td><strong>L1 Cache</strong></td>
+                <td>On-chip</td>
+                <td>Per-SM</td>
+                <td style="color: var(--accent);">~30 cycles</td>
+                <td>Shared with smem</td>
+                <td>Automatic caching of global reads</td>
+            </tr>
+            <tr>
+                <td><strong>L2 Cache</strong></td>
+                <td>On-chip</td>
+                <td>Device</td>
+                <td>~30 cycles</td>
+                <td>1.5&ndash;6 MB</td>
+                <td>Automatic caching layer</td>
+            </tr>
+            <tr>
+                <td><strong>Constant</strong></td>
+                <td>DRAM + cache</td>
+                <td>Device (R/O)</td>
+                <td style="color: var(--accent);">~5 cycles (hit)</td>
+                <td>64 KB</td>
+                <td>Uniform reads: weights, LUTs</td>
+            </tr>
+            <tr>
+                <td><strong>Texture</strong></td>
+                <td>DRAM + cache</td>
+                <td>Device (R/O)</td>
+                <td>~5 cycles (hit)</td>
+                <td>Varies</td>
+                <td>2D spatial locality, interpolation</td>
+            </tr>
+            <tr>
+                <td><strong>Local</strong></td>
+                <td>DRAM</td>
+                <td>Per-thread</td>
+                <td style="color: #ff7b72;">~400 cycles</td>
+                <td>Up to 512 KB</td>
+                <td>Register spills, large arrays</td>
+            </tr>
+            <tr>
+                <td><strong>Global</strong></td>
+                <td>DRAM</td>
+                <td>Device</td>
+                <td style="color: #ff7b72;">~400 cycles</td>
+                <td>8&ndash;80 GB</td>
+                <td>Main data store, I/O buffers</td>
+            </tr>
+        </table>
+    </div>
+
+    <h3>Access Pattern Rules</h3>
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>Global Memory</h4>
+            <ul>
+                <li><strong>Coalesce</strong>: consecutive threads &rarr; consecutive addresses</li>
+                <li>Avoid strided access (especially power-of-2 strides)</li>
+                <li>Align allocations to 128-byte boundaries</li>
+                <li>Use <code>cudaMallocPitch</code> for 2D arrays</li>
+            </ul>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>Shared Memory</h4>
+            <ul>
+                <li>Avoid <strong>bank conflicts</strong>: stride-1 is best</li>
+                <li>Pad arrays to avoid power-of-2 stride conflicts</li>
+                <li>Always call <code>__syncthreads()</code> after writing</li>
+                <li>Don't over-allocate (limits occupancy)</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="callout">
+        <div class="callout-label">Decision Flowchart</div>
+        <p><strong>Is the data read-only and small (&le;64 KB)?</strong> &rarr; Constant memory. <strong>Is it reused by threads in the same block?</strong> &rarr; Shared memory. <strong>Does it fit in registers?</strong> &rarr; Keep it local. <strong>Otherwise</strong> &rarr; Global memory with coalesced access.</p>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════ SLIDE 09 — Summary ═══════════════════════════════ -->
+<section class="slide" id="slide-09">
+    <div class="slide-number">09</div>
+    <h2>Summary &amp; Next Steps</h2>
+
+    <h3>What We Covered</h3>
+    <ul>
+        <li><strong>Memory hierarchy</strong> — the pyramid from registers (fastest) through shared, L1/L2, constant, and global memory (slowest).</li>
+        <li><strong>Global memory</strong> — coalesced access patterns minimise transactions; strided and random access wastes bandwidth.</li>
+        <li><strong>Shared memory</strong> — on-chip, per-block, ~100&times; faster than global. Watch for bank conflicts (32 banks, stride-1 is ideal).</li>
+        <li><strong>Tiling pattern</strong> — load a tile from global &rarr; shared, synchronise, compute from shared. Dramatically reduces global traffic.</li>
+        <li><strong>Constant memory</strong> — 64 KB read-only cache with warp-wide broadcast. Perfect for uniform access patterns.</li>
+        <li><strong>Registers</strong> — fastest storage, allocated per-thread. High register pressure causes spilling to slow local memory.</li>
+        <li><strong>Unified memory</strong> — simplified programming with automatic page migration. Grace Hopper makes this nearly free.</li>
+    </ul>
+
+    <h3>Key Takeaways</h3>
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>Move Data Up the Hierarchy</h4>
+            <p>The single most impactful optimisation in CUDA is reducing global memory traffic. Use shared memory tiling whenever threads reuse data.</p>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>Respect Access Patterns</h4>
+            <p>Coalesced global reads and conflict-free shared memory access can make the difference between 10% and 90% of peak bandwidth.</p>
+        </div>
+    </div>
+
+    <h3>Next Tutorial</h3>
+    <div class="callout">
+        <div class="callout-label">Up Next — Tutorial 05</div>
+        <p><strong><a href="https://brendanjameslynskey.github.io/CUDA_05_Matrix_Multiply/" style="color: var(--accent); text-decoration: none;">Matrix Multiplication</a></strong> — apply the tiling pattern to the classic GEMM problem. We'll build from a naive O(N&sup3;) kernel to an optimised tiled version, measuring the impact of shared memory at every step.</p>
+    </div>
+</section>
+
+<!-- ════════════════════════════════════ Footer ════════════════════════════════════ -->
+<footer class="footer">
+    <p>Part of the <a href="https://github.com/BrendanJamesLynskey/LLMs#cuda-programming">CUDA Programming Series</a></p>
+    <p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-secondary);">Memory Hierarchy — Tutorial 04 of 10</p>
+</footer>
+
+<script>
+    // Smooth scroll for table-of-contents links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    });
+
+    // Subtle fade-in animation for slides on scroll
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.slide').forEach(slide => {
+        slide.style.opacity = '0';
+        slide.style.transform = 'translateY(30px)';
+        slide.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(slide);
+    });
+</script>
+
+</body>
+</html>
