@@ -9,15 +9,15 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #0a0a0a;
-            --bg-card: #0d1117;
-            --bg-code: #161b22;
-            --text-primary: #e6edf3;
-            --text-secondary: #8b949e;
-            --accent: #76B900;
-            --accent-dim: #76B90044;
-            --accent-glow: #76B90033;
-            --border: #21262d;
+            --bg-primary: #1b1b1a;
+            --bg-card: #212120;
+            --bg-code: #292928;
+            --text-primary: #edede7;
+            --text-secondary: #9b9b95;
+            --accent: #b8b315;
+            --accent-dim: #b8b31544;
+            --accent-glow: #b8b31533;
+            --border: #363633;
             --font-display: 'Space Grotesk', sans-serif;
             --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
             --font-body: 'Inter', sans-serif;
@@ -228,7 +228,7 @@
             font-family: var(--font-mono);
             font-size: 0.75rem;
             color: var(--accent);
-            background: rgba(118, 185, 0, 0.08);
+            background: rgba(184,179,21,0.08);
             padding: 0.4rem 1rem;
             border-bottom: 1px solid var(--border);
         }
@@ -243,18 +243,18 @@
             font-family: var(--font-mono);
             font-size: 0.85rem;
             line-height: 1.6;
-            color: #c9d1d9;
+            color: #d5d5cf;
         }
 
         /* Syntax highlighting (manual) */
-        .kw { color: #ff7b72; }
-        .fn { color: #d2a8ff; }
-        .str { color: #a5d6ff; }
-        .cm { color: #8b949e; font-style: italic; }
-        .num { color: #79c0ff; }
-        .type { color: #ffa657; }
-        .dir { color: #ff7b72; }
-        .mac { color: #ffa657; }
+        .kw { color: #e57d63; }
+        .fn { color: #d1c2e1; }
+        .str { color: #c9dbe2; }
+        .cm { color: #9b9b95; font-style: italic; }
+        .num { color: #afcbd8; }
+        .type { color: #e0b172; }
+        .dir { color: #e57d63; }
+        .mac { color: #e0b172; }
 
         /* ── Tables ── */
         .table-wrap {
@@ -292,7 +292,7 @@
         }
 
         tr:nth-child(even) td {
-            background: rgba(13, 17, 23, 0.5);
+            background: rgba(33,33,32,0.5);
         }
 
         /* ── Diagrams ── */
@@ -324,7 +324,7 @@
         .diagram-box.accent {
             border-color: var(--accent);
             color: var(--accent);
-            background: rgba(118, 185, 0, 0.08);
+            background: rgba(184,179,21,0.08);
         }
 
         .diagram-box.dim {
@@ -400,7 +400,7 @@
         .hierarchy-item.accent {
             border-color: var(--accent);
             color: var(--accent);
-            background: rgba(118, 185, 0, 0.08);
+            background: rgba(184,179,21,0.08);
         }
 
         /* Grid diagram */
@@ -492,15 +492,15 @@
         }
 
         .bank-cell.active {
-            background: rgba(118, 185, 0, 0.15);
+            background: rgba(184,179,21,0.15);
             border-color: var(--accent);
             color: var(--accent);
         }
 
         .bank-cell.conflict {
-            background: rgba(255, 123, 114, 0.12);
-            border-color: #ff7b72;
-            color: #ff7b72;
+            background: rgba(229,125,99,0.12);
+            border-color: #e57d63;
+            color: #e57d63;
         }
 
         /* ── Pyramid diagram ── */
@@ -539,7 +539,7 @@
         .pyramid-bar.accent {
             border-color: var(--accent);
             color: var(--accent);
-            background: rgba(118, 185, 0, 0.08);
+            background: rgba(184,179,21,0.08);
         }
 
         .pyramid-stats {
@@ -868,7 +868,7 @@ myKernel&lt;&lt;&lt;grid, block&gt;&gt;&gt;(d_data, N);         <span class="cm"
     </div>
 
     <div style="padding: 1.25rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; margin: 1.25rem 0;">
-        <div style="font-family: var(--font-mono); font-size: 0.75rem; color: #ff7b72; margin-bottom: 0.75rem; text-align: center;">Strided Access &mdash; Multiple Transactions (wasteful)</div>
+        <div style="font-family: var(--font-mono); font-size: 0.75rem; color: #e57d63; margin-bottom: 0.75rem; text-align: center;">Strided Access &mdash; Multiple Transactions (wasteful)</div>
         <div style="display: flex; gap: 2px; justify-content: center; margin-bottom: 0.5rem;">
             <div style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-secondary); width: 60px; text-align: right; padding-top: 0.25rem;">Threads:</div>
             <div style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; flex: 1; max-width: 300px;">
@@ -876,7 +876,7 @@ myKernel&lt;&lt;&lt;grid, block&gt;&gt;&gt;(d_data, N);         <span class="cm"
                 <div class="bank-cell conflict">T4</div><div class="bank-cell conflict">T5</div><div class="bank-cell conflict">T6</div><div class="bank-cell conflict">T7</div>
             </div>
         </div>
-        <div style="text-align: center; color: #ff7b72; font-family: var(--font-mono); font-size: 0.8rem;">&darr; &nbsp; &darr; &nbsp; &darr; &nbsp; &darr; &nbsp; &darr; &nbsp; &darr; &nbsp; &darr; &nbsp; &darr;</div>
+        <div style="text-align: center; color: #e57d63; font-family: var(--font-mono); font-size: 0.8rem;">&darr; &nbsp; &darr; &nbsp; &darr; &nbsp; &darr; &nbsp; &darr; &nbsp; &darr; &nbsp; &darr; &nbsp; &darr;</div>
         <div style="display: flex; gap: 2px; justify-content: center; margin-top: 0.5rem;">
             <div style="font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-secondary); width: 60px; text-align: right; padding-top: 0.25rem;">Addrs:</div>
             <div style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; flex: 1; max-width: 300px;">
@@ -884,7 +884,7 @@ myKernel&lt;&lt;&lt;grid, block&gt;&gt;&gt;(d_data, N);         <span class="cm"
                 <div class="bank-cell conflict">512</div><div class="bank-cell conflict">640</div><div class="bank-cell conflict">768</div><div class="bank-cell conflict">896</div>
             </div>
         </div>
-        <div style="font-family: var(--font-mono); font-size: 0.65rem; color: #ff7b72; margin-top: 0.5rem; text-align: center;">Thread i reads address base + i*128 &rarr; scattered &rarr; 8 transactions</div>
+        <div style="font-family: var(--font-mono); font-size: 0.65rem; color: #e57d63; margin-top: 0.5rem; text-align: center;">Thread i reads address base + i*128 &rarr; scattered &rarr; 8 transactions</div>
     </div>
 
     <div class="code-block">
@@ -973,7 +973,7 @@ myKernel&lt;&lt;&lt;grid, block&gt;&gt;&gt;(d_data, N);         <span class="cm"
     </div>
 
     <div style="padding: 1.25rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; margin: 1.25rem 0;">
-        <div style="font-family: var(--font-mono); font-size: 0.75rem; color: #ff7b72; margin-bottom: 0.75rem; text-align: center;">2-Way Bank Conflict &mdash; Even Threads Collide</div>
+        <div style="font-family: var(--font-mono); font-size: 0.75rem; color: #e57d63; margin-bottom: 0.75rem; text-align: center;">2-Way Bank Conflict &mdash; Even Threads Collide</div>
         <div style="display: flex; gap: 2px; justify-content: center; margin-bottom: 0.3rem;">
             <div style="font-family: var(--font-mono); font-size: 0.55rem; color: var(--text-secondary); width: 50px; text-align: right; padding-top: 0.2rem;">Thread:</div>
             <div style="display: grid; grid-template-columns: repeat(16, 1fr); gap: 2px; flex: 1; max-width: 480px;">
@@ -983,7 +983,7 @@ myKernel&lt;&lt;&lt;grid, block&gt;&gt;&gt;(d_data, N);         <span class="cm"
                 <div class="bank-cell conflict">T12</div><div class="bank-cell active">T13</div><div class="bank-cell conflict">T14</div><div class="bank-cell active">T15</div>
             </div>
         </div>
-        <div style="text-align: center; color: #ff7b72; font-family: var(--font-mono); font-size: 0.7rem;">&darr;&nbsp;&darr; &darr;&nbsp;&darr; &darr;&nbsp;&darr; &darr;&nbsp;&darr; &darr;&nbsp;&darr; &darr;&nbsp;&darr; &darr;&nbsp;&darr; &darr;&nbsp;&darr;</div>
+        <div style="text-align: center; color: #e57d63; font-family: var(--font-mono); font-size: 0.7rem;">&darr;&nbsp;&darr; &darr;&nbsp;&darr; &darr;&nbsp;&darr; &darr;&nbsp;&darr; &darr;&nbsp;&darr; &darr;&nbsp;&darr; &darr;&nbsp;&darr; &darr;&nbsp;&darr;</div>
         <div style="display: flex; gap: 2px; justify-content: center; margin-top: 0.3rem;">
             <div style="font-family: var(--font-mono); font-size: 0.55rem; color: var(--text-secondary); width: 50px; text-align: right; padding-top: 0.2rem;">Bank:</div>
             <div style="display: grid; grid-template-columns: repeat(16, 1fr); gap: 2px; flex: 1; max-width: 480px;">
@@ -993,7 +993,7 @@ myKernel&lt;&lt;&lt;grid, block&gt;&gt;&gt;(d_data, N);         <span class="cm"
                 <div class="bank-cell conflict">B24</div><div class="bank-cell conflict">B26</div><div class="bank-cell conflict">B28</div><div class="bank-cell conflict">B30</div>
             </div>
         </div>
-        <div style="font-family: var(--font-mono); font-size: 0.65rem; color: #ff7b72; margin-top: 0.5rem; text-align: center;">smem[threadIdx.x * 2] &rarr; stride-2 &rarr; T0 &amp; T16 hit bank 0 &rarr; 2-way conflict</div>
+        <div style="font-family: var(--font-mono); font-size: 0.65rem; color: #e57d63; margin-top: 0.5rem; text-align: center;">smem[threadIdx.x * 2] &rarr; stride-2 &rarr; T0 &amp; T16 hit bank 0 &rarr; 2-way conflict</div>
     </div>
 
     <div class="callout">
@@ -1165,8 +1165,8 @@ myKernel&lt;&lt;&lt;grid, block&gt;&gt;&gt;(d_data, N);         <span class="cm"
                 <li>Examples: filter weights, physical constants, lookup tables</li>
             </ul>
         </div>
-        <div class="diagram-panel" style="border-left: 3px solid #ff7b72;">
-            <h4 style="color: #ff7b72;">Avoid Constant Memory</h4>
+        <div class="diagram-panel" style="border-left: 3px solid #e57d63;">
+            <h4 style="color: #e57d63;">Avoid Constant Memory</h4>
             <ul>
                 <li>Threads read <strong>different addresses</strong> (serialised: 32 reads)</li>
                 <li>Data exceeds 64 KB</li>
@@ -1215,8 +1215,8 @@ myKernel&lt;&lt;&lt;grid, block&gt;&gt;&gt;(d_data, N);         <span class="cm"
                 <li>Better latency hiding</li>
             </ul>
         </div>
-        <div class="diagram-panel" style="border-left: 3px solid #ff7b72;">
-            <h4 style="color: #ff7b72;">High Register Pressure</h4>
+        <div class="diagram-panel" style="border-left: 3px solid #e57d63;">
+            <h4 style="color: #e57d63;">High Register Pressure</h4>
             <ul>
                 <li>Many registers per thread</li>
                 <li>Fewer active warps per SM</li>
@@ -1232,7 +1232,7 @@ myKernel&lt;&lt;&lt;grid, block&gt;&gt;&gt;(d_data, N);         <span class="cm"
     <div class="diagram-vertical">
         <div class="diagram-box accent" style="width: 60%;">Registers (fastest)</div>
         <div class="diagram-arrow">&darr; spill</div>
-        <div class="diagram-box" style="width: 70%; border-color: #ff7b72; color: #ff7b72;">Local Memory (DRAM speed!)</div>
+        <div class="diagram-box" style="width: 70%; border-color: #e57d63; color: #e57d63;">Local Memory (DRAM speed!)</div>
         <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.5rem;">Local memory = private per-thread, but lives in global DRAM</div>
     </div>
 
@@ -1308,8 +1308,8 @@ myKernel&lt;&lt;&lt;grid, block&gt;&gt;&gt;(data, N);
                 <li>Oversubscription: allocate more than GPU memory</li>
             </ul>
         </div>
-        <div class="diagram-panel" style="border-left: 3px solid #ff7b72;">
-            <h4 style="color: #ff7b72;">Considerations</h4>
+        <div class="diagram-panel" style="border-left: 3px solid #e57d63;">
+            <h4 style="color: #e57d63;">Considerations</h4>
             <ul>
                 <li>Page faults add latency on first access</li>
                 <li>Migration overhead can hurt performance</li>
@@ -1394,7 +1394,7 @@ myKernel&lt;&lt;&lt;grid, block&gt;&gt;&gt;(data, N);
                 <td><strong>Local</strong></td>
                 <td>DRAM</td>
                 <td>Per-thread</td>
-                <td style="color: #ff7b72;">~400 cycles</td>
+                <td style="color: #e57d63;">~400 cycles</td>
                 <td>Up to 512 KB</td>
                 <td>Register spills, large arrays</td>
             </tr>
@@ -1402,7 +1402,7 @@ myKernel&lt;&lt;&lt;grid, block&gt;&gt;&gt;(data, N);
                 <td><strong>Global</strong></td>
                 <td>DRAM</td>
                 <td>Device</td>
-                <td style="color: #ff7b72;">~400 cycles</td>
+                <td style="color: #e57d63;">~400 cycles</td>
                 <td>8&ndash;80 GB</td>
                 <td>Main data store, I/O buffers</td>
             </tr>
